@@ -16,14 +16,14 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 /** Single IO implementation - uses YAMS Elevator mechanism with SmartMotorController telemetry. */
-public class ElevatorIOTalonFX implements ElevatorIO {
+public class LinearIntakeIOTalonFX implements LinearIntakeIO {
 
-  private final Elevator elevator;
+  private final Elevator linearIntake;
   private final SmartMotorController motor;
 
   SmartMotorControllerConfig smcConfig;
 
-  public ElevatorIOTalonFX(SubsystemBase subsystem, int canId) {
+  public LinearIntakeIOTalonFX(SubsystemBase subsystem, int canId) {
     TalonFX talonFX = new TalonFX(canId);
 
     // Step 1: Create SmartMotorControllerConfig
@@ -39,32 +39,32 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     SmartMotorController smc = new TalonFXWrapper(talonFX, DCMotor.getKrakenX60(1), smcConfig);
 
     // Step 3: Create ElevatorConfig with the SmartMotorController
-    ElevatorConfig elevatorConfig =
+    ElevatorConfig linearIntakeConfig =
         new ElevatorConfig(smc)
             .withDrumRadius(Inches.of(0.75)) // Drum radius for pulley
             .withMass(Pounds.of(10)) // Carriage mass - used for simulation physics
             .withHardLimits(Meters.of(0), Meters.of(1.5)) // Physical hard stops for sim
             .withSoftLimits(Meters.of(0.02), Meters.of(1.2))
             .withStartingHeight(Meters.of(0.5))
-            .withTelemetry("Elevator", TelemetryVerbosity.HIGH);
+            .withTelemetry("LinearIntake", TelemetryVerbosity.HIGH);
 
     // Step 4: Create Elevator mechanism - handles simulation automatically!
-    this.elevator = new Elevator(elevatorConfig);
+    this.linearIntake = new Elevator(linearIntakeConfig);
 
     // Get reference to underlying SmartMotorController for telemetry
-    this.motor = elevator.getMotor();
+    this.motor = linearIntake.getMotor();
   }
 
   @Override
-  public void updateInputs(ElevatorIOInputs inputs) {
+  public void updateInputs(LinearIntakeIOInputs inputs) {
     // Pull telemetry data from the underlying SmartMotorController
-    inputs.positionMeters = motor.getMeasurementPosition().in(Meters);
-    inputs.velocityMetersPerSec = motor.getMeasurementVelocity().in(MetersPerSecond);
+    inputs.extensionMeters = motor.getMeasurementPosition().in(Meters);
+    inputs.extensionMetersPerSec = motor.getMeasurementVelocity().in(MetersPerSecond);
     inputs.appliedVolts = motor.getVoltage().in(Volts);
     inputs.supplyCurrentAmps = motor.getSupplyCurrent().map(c -> c.in(Amps)).orElse(0.0);
     inputs.statorCurrentAmps = motor.getStatorCurrent().in(Amps);
     inputs.temperatureCelsius = motor.getTemperature().in(Celsius);
-    inputs.targetPositionMeters =
+    inputs.targetExtensionMeters =
         motor
             .getMechanismPositionSetpoint()
             .map(smcConfig::convertFromMechanism)
@@ -73,7 +73,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   }
 
   @Override
-  public void setTargetHeight(double meters) {
+  public void setTargetExtension(double meters) {
     // Use SmartMotorController's setPosition method with Distance
     motor.setPosition(Meters.of(meters));
   }
@@ -83,8 +83,8 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     motor.setVoltage(Volts.of(0));
   }
 
-  /** Access the Elevator mechanism for command helpers like run() and runTo() */
-  public Elevator getElevator() {
-    return elevator;
+  /** Access the linear intake mechanism for command helpers like run() and runTo() */
+  public Elevator getLinearIntake() {
+    return linearIntake;
   }
 }
