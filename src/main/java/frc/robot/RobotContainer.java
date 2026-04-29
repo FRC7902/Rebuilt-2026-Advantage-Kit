@@ -5,7 +5,8 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.button.CommandPS5Controller;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.HoodSubsystem;
 import frc.robot.subsystems.LinearIntakeSubsystem;
@@ -21,7 +22,7 @@ public class RobotContainer {
   private final LinearIntakeSubsystem linearIntake;
   private final ShooterSubsystem shooter;
 
-  final CommandPS5Controller driverPS5 = new CommandPS5Controller(0);
+  final CommandXboxController driverXbox = new CommandXboxController(0);
   private final SwerveSubsystem drivebase =
       new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
 
@@ -36,9 +37,9 @@ public class RobotContainer {
   SwerveInputStream driveAngularVelocity =
       SwerveInputStream.of(
               drivebase.getSwerveDrive(),
-              () -> driverPS5.getLeftY() * -1,
-              () -> driverPS5.getLeftX() * -1)
-          .withControllerRotationAxis(driverPS5::getRightX)
+              () -> driverXbox.getLeftY() * -1,
+              () -> driverXbox.getLeftX() * -1)
+          .withControllerRotationAxis(driverXbox::getRightX)
           .deadband(OperatorConstants.DEADBAND)
           .scaleTranslation(0.8)
           .allianceRelativeControl(true);
