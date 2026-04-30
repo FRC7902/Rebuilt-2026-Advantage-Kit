@@ -12,6 +12,10 @@ import frc.robot.subsystems.HoodSubsystem;
 import frc.robot.subsystems.LinearIntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
+
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
+
 import java.io.File;
 import org.littletonrobotics.junction.Logger;
 import swervelib.SwerveInputStream;
@@ -50,10 +54,6 @@ public class RobotContainer {
     shooter = new ShooterSubsystem(3);
 
     configureBindings();
-
-    // TODO: Remove this after zeroing 3D components
-    Logger.recordOutput("3D/RobotPose", new Pose2d());
-    Logger.recordOutput("3D/ZeroedComponentPoses", new Pose3d[] {new Pose3d(), new Pose3d()});
   }
 
   public void publishComponentPoses() {
@@ -68,6 +68,18 @@ public class RobotContainer {
   private void configureBindings() {
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+
+    driverXbox.a().onTrue(hood.setAngle(0.0));
+    driverXbox.b().onTrue(hood.setAngle(0.3));
+    driverXbox.x().onTrue(hood.setAngle(-0.3));
+
+    driverXbox.povDown().onTrue(linearIntake.setExtension(0));
+    driverXbox.povRight().onTrue(linearIntake.setExtension(0.5));
+    driverXbox.povUp().onTrue(linearIntake.setExtension(1.2));
+
+    driverXbox.start().onTrue(new InstantCommand(() -> {
+        System.out.println("Hello world!");
+    }));
   }
 
   /**
