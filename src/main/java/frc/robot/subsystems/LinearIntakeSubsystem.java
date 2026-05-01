@@ -44,8 +44,7 @@ import yams.motorcontrollers.local.SparkWrapper;
 public class LinearIntakeSubsystem extends SubsystemBase {
 
   /**
-   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to
-   * the SMC is an
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
    * Output. Everything coming from the SMC is an Input.
    */
   @AutoLog
@@ -58,7 +57,8 @@ public class LinearIntakeSubsystem extends SubsystemBase {
     public Current current = Amps.of(0);
   }
 
-  private final LinearIntakeInputsAutoLogged linearIntakeInputs = new LinearIntakeInputsAutoLogged();
+  private final LinearIntakeInputsAutoLogged linearIntakeInputs =
+      new LinearIntakeInputsAutoLogged();
 
   private final Distance chainPitch = Inches.of(0.25);
   private final int toothCount = 22;
@@ -70,46 +70,51 @@ public class LinearIntakeSubsystem extends SubsystemBase {
   private final SparkMax linearIntakeMotor = new SparkMax(30, SparkLowLevel.MotorType.kBrushless);
   private final SparkMax linearIntakeMotor2 = new SparkMax(31, SparkLowLevel.MotorType.kBrushless);
 
-  private final SmartMotorControllerConfig motorConfig = new SmartMotorControllerConfig(this)
-      .withControlMode(ControlMode.CLOSED_LOOP)
-      .withMechanismCircumference(circumference)
-      .withClosedLoopController(
-          new ExponentialProfilePIDController(
-              30,
-              0,
-              0,
-              ExponentialProfilePIDController.createElevatorConstraints(
-                  Volts.of(12), motors, weight, radius, gearing)))
-      .withFeedforward(new ElevatorFeedforward(0, 0.1, 0, 0))
-      .withStatorCurrentLimit(Amps.of(40))
-      .withMotorInverted(false)
-      .withSoftLimit(Meters.of(0), Meters.of(2))
-      .withGearing(gearing)
-      .withIdleMode(MotorMode.BRAKE)
-      .withTelemetry("LinearIntakeMotor", TelemetryVerbosity.HIGH)
-      // LinearIntake motor2 follows LinearIntake motor with an inversed output.
-      .withFollowers(Pair.of(linearIntakeMotor2, true));
+  private final SmartMotorControllerConfig motorConfig =
+      new SmartMotorControllerConfig(this)
+          .withControlMode(ControlMode.CLOSED_LOOP)
+          .withMechanismCircumference(circumference)
+          .withClosedLoopController(
+              new ExponentialProfilePIDController(
+                  30,
+                  0,
+                  0,
+                  ExponentialProfilePIDController.createElevatorConstraints(
+                      Volts.of(12), motors, weight, radius, gearing)))
+          .withFeedforward(new ElevatorFeedforward(0, 0.1, 0, 0))
+          .withStatorCurrentLimit(Amps.of(40))
+          .withMotorInverted(false)
+          .withSoftLimit(Meters.of(0), Meters.of(2))
+          .withGearing(gearing)
+          .withIdleMode(MotorMode.BRAKE)
+          .withTelemetry("LinearIntakeMotor", TelemetryVerbosity.HIGH)
+          // LinearIntake motor2 follows LinearIntake motor with an inversed output.
+          .withFollowers(Pair.of(linearIntakeMotor2, true));
 
-  private final SmartMotorController motor = new SparkWrapper(linearIntakeMotor, motors, motorConfig);
-  private ElevatorConfig m_config = new ElevatorConfig(motor)
-      .withStartingHeight(Meters.of(0.3132))
-      .withHardLimits(Meters.of(0), Meters.of(0.3132))
-      .withTelemetry("LinearIntake", TelemetryVerbosity.HIGH)
-      .withAngle(Degrees.of(180 + 24.159))
-      .withMass(weight);
+  private final SmartMotorController motor =
+      new SparkWrapper(linearIntakeMotor, motors, motorConfig);
+  private ElevatorConfig m_config =
+      new ElevatorConfig(motor)
+          .withStartingHeight(Meters.of(0.3132))
+          .withHardLimits(Meters.of(0), Meters.of(0.3132))
+          .withTelemetry("LinearIntake", TelemetryVerbosity.HIGH)
+          .withAngle(Degrees.of(180 + 24.159))
+          .withMass(weight);
   private final Elevator m_linearIntake = new Elevator(m_config);
 
   public LinearIntakeSubsystem() {
     new Trigger(() -> getHeight().lte(Meters.of(0.1)))
         .and(
-            () -> linearIntakeInputs.setpoint.isEquivalent(
-                motorConfig.convertFromMechanism(Rotations.of(0))))
+            () ->
+                linearIntakeInputs.setpoint.isEquivalent(
+                    motorConfig.convertFromMechanism(Rotations.of(0))))
         .whileTrue(m_linearIntake.set(0));
   }
 
   private void updateInputs() {
-    linearIntakeInputs.setpoint = motorConfig.convertFromMechanism(
-        m_linearIntake.getMechanismSetpoint().orElse(Rotations.of(1)));
+    linearIntakeInputs.setpoint =
+        motorConfig.convertFromMechanism(
+            m_linearIntake.getMechanismSetpoint().orElse(Rotations.of(1)));
     linearIntakeInputs.position = m_linearIntake.getHeight();
     linearIntakeInputs.velocity = m_linearIntake.getVelocity();
     linearIntakeInputs.current = motor.getStatorCurrent();
