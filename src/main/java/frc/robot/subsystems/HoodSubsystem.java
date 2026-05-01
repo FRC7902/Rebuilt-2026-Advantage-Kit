@@ -9,12 +9,16 @@ import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -59,7 +63,8 @@ public class HoodSubsystem extends SubsystemBase {
   }
 
   /**
-   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to
+   * the SMC is an
    * Output. Everything coming from the SMC is an Input.
    */
   @AutoLog
@@ -79,48 +84,48 @@ public class HoodSubsystem extends SubsystemBase {
   ///
   /// YAMS Configurations
   ///
-  private SmartMotorControllerConfig smcConfig =
-      new SmartMotorControllerConfig(this)
-          .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(
-              ArmConstants.KP,
-              ArmConstants.KI,
-              ArmConstants.KD,
-              DegreesPerSecond.of(ArmConstants.VELOCITY),
-              DegreesPerSecondPerSecond.of(ArmConstants.ACCELERATION))
-          .withSimClosedLoopController(
-              ArmConstants.KP,
-              ArmConstants.KI,
-              ArmConstants.KD,
-              DegreesPerSecond.of(ArmConstants.VELOCITY),
-              DegreesPerSecondPerSecond.of(ArmConstants.ACCELERATION))
-          .withFeedforward(
-              new ArmFeedforward(
-                  ArmConstants.KS, ArmConstants.KG, ArmConstants.KV, ArmConstants.KA))
-          .withSimFeedforward(
-              new ArmFeedforward(
-                  ArmConstants.KS, ArmConstants.KG, ArmConstants.KV, ArmConstants.KA))
-          .withTelemetry("", TelemetryVerbosity.HIGH)
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(12.5, 1)))
-          .withMotorInverted(false)
-          .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(Amps.of(ArmConstants.STATOR_CURRENT_LIMIT));
+  private SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+      .withControlMode(ControlMode.CLOSED_LOOP)
+      .withClosedLoopController(
+          ArmConstants.KP,
+          ArmConstants.KI,
+          ArmConstants.KD,
+          DegreesPerSecond.of(ArmConstants.VELOCITY),
+          DegreesPerSecondPerSecond.of(ArmConstants.ACCELERATION))
+      .withSimClosedLoopController(
+          ArmConstants.KP,
+          ArmConstants.KI,
+          ArmConstants.KD,
+          DegreesPerSecond.of(ArmConstants.VELOCITY),
+          DegreesPerSecondPerSecond.of(ArmConstants.ACCELERATION))
+      .withFeedforward(
+          new ArmFeedforward(
+              ArmConstants.KS, ArmConstants.KG, ArmConstants.KV, ArmConstants.KA))
+      .withSimFeedforward(
+          new ArmFeedforward(
+              ArmConstants.KS, ArmConstants.KG, ArmConstants.KV, ArmConstants.KA))
+      .withTelemetry("", TelemetryVerbosity.HIGH)
+      .withGearing(new MechanismGearing(GearBox.fromReductionStages(12.5, 1)))
+      .withMotorInverted(false)
+      .withIdleMode(MotorMode.BRAKE)
+      .withStatorCurrentLimit(Amps.of(ArmConstants.STATOR_CURRENT_LIMIT));
 
-  private SmartMotorController hoodSMC =
-      new TalonFXWrapper(hoodMotor, DCMotor.getFalcon500(1), smcConfig);
+  private SmartMotorController hoodSMC = new TalonFXWrapper(hoodMotor, DCMotor.getFalcon500(1), smcConfig);
 
-  private ArmConfig hoodCfg =
-      new ArmConfig(hoodSMC)
-          .withHardLimit(Degrees.of(-25), Degrees.of(141))
-          .withStartingPosition(Degrees.of(141))
-          .withLength(Feet.of((14.0 / 12)))
-          .withMOI(ArmConstants.MOI)
-          .withTelemetry("Arm", TelemetryVerbosity.HIGH);
+  private ArmConfig hoodCfg = new ArmConfig(hoodSMC)
+      .withHardLimit(Degrees.of(0), Degrees.of(40))
+      .withStartingPosition(Degrees.of(0))
+      .withLength(Feet.of((14.0 / 12)))
+      .withMOI(ArmConstants.MOI)
+      .withTelemetry("Arm", TelemetryVerbosity.HIGH);
 
   // Arm Mechanism
   private Arm hood = new Arm(hoodCfg);
 
-  /** Updates AdvantageKit inputs from the {@link Arm} to be used in the rest of the program. */
+  /**
+   * Updates AdvantageKit inputs from the {@link Arm} to be used in the rest of
+   * the program.
+   */
   public void updateInputs() {
     hoodInputs.pivotPosition = hood.getAngle();
     hoodInputs.pivotVelocity = hoodSMC.getMechanismVelocity();
@@ -186,5 +191,11 @@ public class HoodSubsystem extends SubsystemBase {
 
   public Current getCurrent() {
     return hoodInputs.pivotCurrent;
+  }
+
+  public Pose3d getPose3d() {
+    return new Pose3d(
+        new Translation3d(0.2286, 0, 0.4572),
+        new Rotation3d(0, hoodInputs.pivotPosition.in(Radians), 0));
   }
 }

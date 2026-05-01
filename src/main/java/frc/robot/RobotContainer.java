@@ -54,7 +54,7 @@ public class RobotContainer {
     Logger.recordOutput(
         "3D/ComponentPoses",
         new Pose3d[] {
-          // linearIntake.getPose3d(), hood.getPose3d(),
+          linearIntake.getPose3d(), hood.getPose3d(),
           // shooter.getPose3d()
         });
   }
