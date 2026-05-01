@@ -1,78 +1,190 @@
+// Copyright (c) FIRST and other WPILib contributors.
+// Open Source Software; you can modify and/or share it under the terms of
+// the WPILib BSD license file in the root directory of this project.
+
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Feet;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
+import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.AutoLog;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import yams.gearing.GearBox;
+import yams.gearing.MechanismGearing;
+import yams.mechanisms.config.ArmConfig;
+import yams.mechanisms.positional.Arm;
+import yams.motorcontrollers.SmartMotorController;
+import yams.motorcontrollers.SmartMotorControllerConfig;
+import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
+import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
+import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
+import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class HoodSubsystem extends SubsystemBase {
 
-    private final HoodIO io;
-    private final HoodIOInputsAutoLogged inputs = new HoodIOInputsAutoLogged();
+  public class ArmConstants {
 
-    public HoodSubsystem(int canId) {
-        this.io = new HoodIOTalonFX(this, canId);
-    }
+    public static final Angle SOME_ANGLE = Degrees.of(20);
+    public static final Angle DOWN_ANGLE = Degrees.of(-35);
+    public static final Angle L1_ANGLE = Degrees.of(65);
+    public static final Angle HANDOFF_ANGLE = Degrees.of(135);
+    public static final double KP = 18;
+    public static final double KI = 0;
+    public static final double KD = 0.2;
+    public static final double KS = -0.1;
+    public static final double KG = 1.2;
+    public static final double KV = 0;
+    public static final double KA = 0;
+    public static final double VELOCITY = 458;
+    public static final double ACCELERATION = 688;
+    public static final int MOTOR_ID = 40;
+    public static final double STATOR_CURRENT_LIMIT = 120;
+    public static final double MOI = 0.1055457256;
+  }
 
-    public HoodSubsystem(HoodIO io) {
-        this.io = io;
-    }
+  /**
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
+   * Output. Everything coming from the SMC is an Input.
+   */
+  @AutoLog
+  public static class HoodInputs {
 
-    @Override
-    public void periodic() {
-        // Update and log inputs every cycle
-        io.updateInputs(inputs);
-        Logger.processInputs("Hood", inputs);
-    }
+    public Angle pivotPosition = Degrees.of(0);
+    public AngularVelocity pivotVelocity = DegreesPerSecond.of(0);
+    public Angle pivotDesiredPosition = Degrees.of(0);
+    public Voltage pivotAppliedVolts = Volts.of(0);
+    public Current pivotCurrent = Amps.of(0);
+  }
 
-    /**
-     * Command to move the hood to a target angle. Uses run() for continuous
-     * control.
-     */
-    public Command setAngle(double rotations) {
-        return run(() -> io.setTargetAngle(rotations)).withName("Hood.setAngle(" + rotations + ")");
-    }
+  private final HoodInputsAutoLogged hoodInputs = new HoodInputsAutoLogged();
 
-    /**
-     * Command to move the hood to a target angle and finish when reached. Uses
-     * runTo() pattern - be
-     * careful with default commands!
-     */
-    public Command goToAngle(double rotations) {
-        return run(() -> io.setTargetAngle(rotations))
-                .until(() -> isNear(Rotations.of(rotations), Rotations.of(0.01)))
-                .withName("Hood.goToAngle(" + rotations + ")");
-    }
+  private final TalonFX hoodMotor = new TalonFX(ArmConstants.MOTOR_ID);
 
-    /**
-     * Returns true if the hood is within tolerance of a target position using
-     * WPILib's isNear().
-     */
-    public boolean isNear(Angle target, Angle tolerance) {
-        return Rotations.of(inputs.angleRotations).isNear(target, tolerance);
-    }
+  ///
+  /// YAMS Configurations
+  ///
+  private SmartMotorControllerConfig smcConfig =
+      new SmartMotorControllerConfig(this)
+          .withControlMode(ControlMode.CLOSED_LOOP)
+          .withClosedLoopController(
+              ArmConstants.KP,
+              ArmConstants.KI,
+              ArmConstants.KD,
+              DegreesPerSecond.of(ArmConstants.VELOCITY),
+              DegreesPerSecondPerSecond.of(ArmConstants.ACCELERATION))
+          .withSimClosedLoopController(
+              ArmConstants.KP,
+              ArmConstants.KI,
+              ArmConstants.KD,
+              DegreesPerSecond.of(ArmConstants.VELOCITY),
+              DegreesPerSecondPerSecond.of(ArmConstants.ACCELERATION))
+          .withFeedforward(
+              new ArmFeedforward(
+                  ArmConstants.KS, ArmConstants.KG, ArmConstants.KV, ArmConstants.KA))
+          .withSimFeedforward(
+              new ArmFeedforward(
+                  ArmConstants.KS, ArmConstants.KG, ArmConstants.KV, ArmConstants.KA))
+          .withTelemetry("", TelemetryVerbosity.HIGH)
+          .withGearing(new MechanismGearing(GearBox.fromReductionStages(12.5, 1)))
+          .withMotorInverted(false)
+          .withIdleMode(MotorMode.BRAKE)
+          .withStatorCurrentLimit(Amps.of(ArmConstants.STATOR_CURRENT_LIMIT));
 
-    /** Returns the current hood position in rotations. */
-    public double getAngleRotations() {
-        return inputs.angleRotations;
-    }
+  private SmartMotorController hoodSMC =
+      new TalonFXWrapper(hoodMotor, DCMotor.getFalcon500(1), smcConfig);
 
-    /** Command to stop the hood. */
-    public Command stop() {
-        return runOnce(() -> io.stop()).withName("Hood.stop");
-    }
+  private ArmConfig hoodCfg =
+      new ArmConfig(hoodSMC)
+          .withHardLimit(Degrees.of(-25), Degrees.of(141))
+          .withStartingPosition(Degrees.of(141))
+          .withLength(Feet.of((14.0 / 12)))
+          .withMOI(ArmConstants.MOI)
+          .withTelemetry("Arm", TelemetryVerbosity.HIGH);
 
-    public Pose3d getPose3d() {
-        return new Pose3d(
-                new Translation3d(0.2286, 0, 0.4572),
-                new Rotation3d(
-                        0, Units.rotationsToRadians(inputs.angleRotations), 0));
-    }
+  // Arm Mechanism
+  private Arm hood = new Arm(hoodCfg);
+
+  /** Updates AdvantageKit inputs from the {@link Arm} to be used in the rest of the program. */
+  public void updateInputs() {
+    hoodInputs.pivotPosition = hood.getAngle();
+    hoodInputs.pivotVelocity = hoodSMC.getMechanismVelocity();
+    hoodInputs.pivotAppliedVolts = hoodSMC.getVoltage();
+    hoodInputs.pivotCurrent = hoodSMC.getStatorCurrent();
+  }
+
+  /**
+   * Set the angle of the arm.
+   *
+   * @param angle Angle to go to.
+   */
+  public Command setAngle(Angle angle) {
+    return hood.setAngle(angle);
+  }
+
+  /**
+   * Move the arm up and down.
+   *
+   * @param dutycycle [-1, 1] speed to set the arm too.
+   */
+  // public Command set(double dutycycle) { return arm.set(dutycycle);}
+
+  /** Run sysId on the {@link Arm} */
+  public Command sysId() {
+    return hood.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));
+  }
+
+  @Override
+  public void periodic() {
+    // This method will be called once per scheduler run
+    updateInputs();
+    Logger.processInputs("Hood", hoodInputs);
+    hood.updateTelemetry();
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    // This method will be called once per scheduler run during simulation
+    hood.simIterate();
+  }
+
+  @AutoLogOutput
+  public Angle getAngleSetpoint() {
+    return hoodSMC.getMechanismPositionSetpoint().orElse(null);
+  }
+
+  public Angle getAngle() {
+    return hoodInputs.pivotPosition;
+  }
+
+  public AngularVelocity getVelocity() {
+    return hoodInputs.pivotVelocity;
+  }
+
+  public Angle getSetpointAngle() {
+    return hoodInputs.pivotDesiredPosition;
+  }
+
+  public Voltage getVoltage() {
+    return hoodInputs.pivotAppliedVolts;
+  }
+
+  public Current getCurrent() {
+    return hoodInputs.pivotCurrent;
+  }
 }

@@ -4,7 +4,6 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.HoodSubsystem;
@@ -44,9 +43,9 @@ public class RobotContainer {
           .allianceRelativeControl(true);
 
   public RobotContainer() {
-    hood = new HoodSubsystem(1);
-    linearIntake = new LinearIntakeSubsystem(2);
-    shooter = new ShooterSubsystem(3);
+    hood = new HoodSubsystem();
+    linearIntake = new LinearIntakeSubsystem();
+    shooter = new ShooterSubsystem();
 
     configureBindings();
   }
@@ -55,7 +54,7 @@ public class RobotContainer {
     Logger.recordOutput(
         "3D/ComponentPoses",
         new Pose3d[] {
-          linearIntake.getPose3d(), hood.getPose3d(),
+          // linearIntake.getPose3d(), hood.getPose3d(),
           // shooter.getPose3d()
         });
   }
@@ -64,13 +63,13 @@ public class RobotContainer {
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
 
-    driverXbox.a().onTrue(hood.setAngle(0.0));
-    driverXbox.b().onTrue(hood.setAngle(0.3));
-    driverXbox.x().onTrue(hood.setAngle(-0.3));
+    // driverXbox.a().onTrue(hood.setAngle(0.0));
+    // driverXbox.b().onTrue(hood.setAngle(0.3));
+    // driverXbox.x().onTrue(hood.setAngle(-0.3));
 
-    driverXbox.povDown().onTrue(linearIntake.setExtension(0));
-    driverXbox.povRight().onTrue(linearIntake.setExtension(0.5));
-    driverXbox.povUp().onTrue(linearIntake.setExtension(1.2));
+    // driverXbox.povDown().onTrue(linearIntake.setExtension(0));
+    // driverXbox.povRight().onTrue(linearIntake.setExtension(0.5));
+    // driverXbox.povUp().onTrue(linearIntake.setExtension(1.2));
   }
 
   /**
