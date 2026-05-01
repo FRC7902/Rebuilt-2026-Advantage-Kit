@@ -5,6 +5,7 @@ import static edu.wpi.first.units.Units.Meters;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -62,13 +63,11 @@ public class LinearIntakeSubsystem extends SubsystemBase {
   }
 
   public Pose3d getPose3d() {
-
-    double distance = (0.5 * Math.sin(Timer.getTimestamp()) + 0.5) * 0.30;
-    double angle = 180 + 24.159;
+    double angle = Math.toRadians(180 + 24.159);
 
     // Convert distance vector to x and z components based on angle
-    double x = distance * Math.cos(Math.toRadians(angle));
-    double z = distance * Math.sin(Math.toRadians(angle));
+    double x = inputs.extensionMeters * Math.cos(angle);
+    double z = inputs.extensionMeters * Math.sin(angle);
     return new Pose3d(new Translation3d(x, 0, z), new Rotation3d());
   }
 }

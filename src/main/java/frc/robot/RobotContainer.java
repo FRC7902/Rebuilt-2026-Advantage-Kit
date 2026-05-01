@@ -1,6 +1,5 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -12,10 +11,6 @@ import frc.robot.subsystems.HoodSubsystem;
 import frc.robot.subsystems.LinearIntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Meters;
-
 import java.io.File;
 import org.littletonrobotics.junction.Logger;
 import swervelib.SwerveInputStream;
@@ -76,10 +71,6 @@ public class RobotContainer {
     driverXbox.povDown().onTrue(linearIntake.setExtension(0));
     driverXbox.povRight().onTrue(linearIntake.setExtension(0.5));
     driverXbox.povUp().onTrue(linearIntake.setExtension(1.2));
-
-    driverXbox.start().onTrue(new InstantCommand(() -> {
-        System.out.println("Hello world!");
-    }));
   }
 
   /**
