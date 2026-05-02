@@ -41,7 +41,7 @@ public class IndexerSubsystem extends SubsystemBase {
 
   private final IndexerInputsAutoLogged indexerInputs = new IndexerInputsAutoLogged();
 
-  private final SparkMax someMotor = new SparkMax(20, MotorType.kBrushless);
+  private final SparkMax someMotor = new SparkMax(21, MotorType.kBrushless);
 
   private final SmartMotorControllerConfig motorConfig =
       new SmartMotorControllerConfig(this)
