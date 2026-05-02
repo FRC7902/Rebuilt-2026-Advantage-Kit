@@ -7,60 +7,32 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.DegreesPerSecondPerSecond;
-import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.HoodConstants;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
-import yams.gearing.GearBox;
-import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.positional.Arm;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
-import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class HoodSubsystem extends SubsystemBase {
-
-  public class HoodConstants {
-
-    public static final Angle SOME_ANGLE = Degrees.of(20);
-    public static final Angle DOWN_ANGLE = Degrees.of(-35);
-    public static final Angle L1_ANGLE = Degrees.of(65);
-    public static final Angle HANDOFF_ANGLE = Degrees.of(135);
-    public static final double KP = 18;
-    public static final double KI = 0;
-    public static final double KD = 0.2;
-    public static final double KS = -0.1;
-    public static final double KG = 1.2;
-    public static final double KV = 0;
-    public static final double KA = 0;
-    public static final double VELOCITY = 458;
-    public static final double ACCELERATION = 688;
-    public static final int MOTOR_ID = 40;
-    public static final double STATOR_CURRENT_LIMIT = 120;
-    public static final double MOI = 0.1055457256;
-  }
 
   /**
    * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
@@ -68,7 +40,6 @@ public class HoodSubsystem extends SubsystemBase {
    */
   @AutoLog
   public static class HoodInputs {
-
     public Angle pivotPosition = Degrees.of(0);
     public AngularVelocity pivotVelocity = DegreesPerSecond.of(0);
     public Angle pivotDesiredPosition = Degrees.of(0);
@@ -78,51 +49,23 @@ public class HoodSubsystem extends SubsystemBase {
 
   private final HoodInputsAutoLogged hoodInputs = new HoodInputsAutoLogged();
 
-  private final TalonFX hoodMotor = new TalonFX(HoodConstants.MOTOR_ID);
+  private final TalonFX hoodMotor;
 
-  ///
-  /// YAMS Configurations
-  ///
-  private SmartMotorControllerConfig smcConfig =
-      new SmartMotorControllerConfig(this)
-          .withControlMode(ControlMode.CLOSED_LOOP)
-          .withClosedLoopController(
-              HoodConstants.KP,
-              HoodConstants.KI,
-              HoodConstants.KD,
-              DegreesPerSecond.of(HoodConstants.VELOCITY),
-              DegreesPerSecondPerSecond.of(HoodConstants.ACCELERATION))
-          .withSimClosedLoopController(
-              HoodConstants.KP,
-              HoodConstants.KI,
-              HoodConstants.KD,
-              DegreesPerSecond.of(HoodConstants.VELOCITY),
-              DegreesPerSecondPerSecond.of(HoodConstants.ACCELERATION))
-          .withFeedforward(
-              new ArmFeedforward(
-                  HoodConstants.KS, HoodConstants.KG, HoodConstants.KV, HoodConstants.KA))
-          .withSimFeedforward(
-              new ArmFeedforward(
-                  HoodConstants.KS, HoodConstants.KG, HoodConstants.KV, HoodConstants.KA))
-          .withTelemetry("", TelemetryVerbosity.HIGH)
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(12.5, 1)))
-          .withMotorInverted(false)
-          .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(Amps.of(HoodConstants.STATOR_CURRENT_LIMIT));
-
-  private SmartMotorController hoodSMC =
-      new TalonFXWrapper(hoodMotor, DCMotor.getFalcon500(1), smcConfig);
-
-  private ArmConfig hoodCfg =
-      new ArmConfig(hoodSMC)
-          .withHardLimit(Degrees.of(0), Degrees.of(40))
-          .withStartingPosition(Degrees.of(0))
-          .withLength(Feet.of((14.0 / 12)))
-          .withMOI(HoodConstants.MOI)
-          .withTelemetry("Hood", TelemetryVerbosity.HIGH);
+  // YAMS Configurations
+  private final SmartMotorControllerConfig smcConfig;
+  private final SmartMotorController hoodSMC;
+  private final ArmConfig hoodCfg;
 
   // Arm Mechanism
-  private Arm hood = new Arm(hoodCfg);
+  private final Arm hood;
+
+  public HoodSubsystem() {
+    hoodMotor = new TalonFX(HoodConstants.CAN_ID);
+    smcConfig = HoodConstants.SMC_CONFIG.withSubsystem(this);
+    hoodSMC = new TalonFXWrapper(hoodMotor, HoodConstants.MOTOR_TYPE, smcConfig);
+    hoodCfg = HoodConstants.ARM_CONFIG.withSmartMotorController(hoodSMC);
+    hood = new Arm(hoodCfg);
+  }
 
   /** Updates AdvantageKit inputs from the {@link Arm} to be used in the rest of the program. */
   public void updateInputs() {
@@ -133,7 +76,7 @@ public class HoodSubsystem extends SubsystemBase {
   }
 
   /**
-   * Set the angle of the arm.
+   * Set the angle of the hood.
    *
    * @param angle Angle to go to.
    */
@@ -142,11 +85,13 @@ public class HoodSubsystem extends SubsystemBase {
   }
 
   /**
-   * Move the arm up and down.
+   * Move the hood up and down.
    *
-   * @param dutycycle [-1, 1] speed to set the arm too.
+   * @param dutycycle [-1, 1] speed to set the hood too.
    */
-  // public Command set(double dutycycle) { return arm.set(dutycycle);}
+  public Command set(double dutycycle) {
+    return hood.set(dutycycle);
+  }
 
   /** Run sysId on the {@link Arm} */
   public Command sysId() {
