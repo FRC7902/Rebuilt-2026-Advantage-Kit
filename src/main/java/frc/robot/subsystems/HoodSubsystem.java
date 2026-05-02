@@ -42,7 +42,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 
 public class HoodSubsystem extends SubsystemBase {
 
-  public class ArmConstants {
+  public class HoodConstants {
 
     public static final Angle SOME_ANGLE = Degrees.of(20);
     public static final Angle DOWN_ANGLE = Degrees.of(-35);
@@ -78,7 +78,7 @@ public class HoodSubsystem extends SubsystemBase {
 
   private final HoodInputsAutoLogged hoodInputs = new HoodInputsAutoLogged();
 
-  private final TalonFX hoodMotor = new TalonFX(ArmConstants.MOTOR_ID);
+  private final TalonFX hoodMotor = new TalonFX(HoodConstants.MOTOR_ID);
 
   ///
   /// YAMS Configurations
@@ -87,28 +87,28 @@ public class HoodSubsystem extends SubsystemBase {
       new SmartMotorControllerConfig(this)
           .withControlMode(ControlMode.CLOSED_LOOP)
           .withClosedLoopController(
-              ArmConstants.KP,
-              ArmConstants.KI,
-              ArmConstants.KD,
-              DegreesPerSecond.of(ArmConstants.VELOCITY),
-              DegreesPerSecondPerSecond.of(ArmConstants.ACCELERATION))
+              HoodConstants.KP,
+              HoodConstants.KI,
+              HoodConstants.KD,
+              DegreesPerSecond.of(HoodConstants.VELOCITY),
+              DegreesPerSecondPerSecond.of(HoodConstants.ACCELERATION))
           .withSimClosedLoopController(
-              ArmConstants.KP,
-              ArmConstants.KI,
-              ArmConstants.KD,
-              DegreesPerSecond.of(ArmConstants.VELOCITY),
-              DegreesPerSecondPerSecond.of(ArmConstants.ACCELERATION))
+              HoodConstants.KP,
+              HoodConstants.KI,
+              HoodConstants.KD,
+              DegreesPerSecond.of(HoodConstants.VELOCITY),
+              DegreesPerSecondPerSecond.of(HoodConstants.ACCELERATION))
           .withFeedforward(
               new ArmFeedforward(
-                  ArmConstants.KS, ArmConstants.KG, ArmConstants.KV, ArmConstants.KA))
+                  HoodConstants.KS, HoodConstants.KG, HoodConstants.KV, HoodConstants.KA))
           .withSimFeedforward(
               new ArmFeedforward(
-                  ArmConstants.KS, ArmConstants.KG, ArmConstants.KV, ArmConstants.KA))
+                  HoodConstants.KS, HoodConstants.KG, HoodConstants.KV, HoodConstants.KA))
           .withTelemetry("", TelemetryVerbosity.HIGH)
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(12.5, 1)))
           .withMotorInverted(false)
           .withIdleMode(MotorMode.BRAKE)
-          .withStatorCurrentLimit(Amps.of(ArmConstants.STATOR_CURRENT_LIMIT));
+          .withStatorCurrentLimit(Amps.of(HoodConstants.STATOR_CURRENT_LIMIT));
 
   private SmartMotorController hoodSMC =
       new TalonFXWrapper(hoodMotor, DCMotor.getFalcon500(1), smcConfig);
@@ -118,8 +118,8 @@ public class HoodSubsystem extends SubsystemBase {
           .withHardLimit(Degrees.of(0), Degrees.of(40))
           .withStartingPosition(Degrees.of(0))
           .withLength(Feet.of((14.0 / 12)))
-          .withMOI(ArmConstants.MOI)
-          .withTelemetry("Arm", TelemetryVerbosity.HIGH);
+          .withMOI(HoodConstants.MOI)
+          .withTelemetry("Hood", TelemetryVerbosity.HIGH);
 
   // Arm Mechanism
   private Arm hood = new Arm(hoodCfg);
