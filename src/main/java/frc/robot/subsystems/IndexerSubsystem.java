@@ -65,7 +65,7 @@ public class IndexerSubsystem extends SubsystemBase {
   /**
    * Gets the current velocity of the indexer.
    *
-   * @return FlyWheel velocity.
+   * @return Indexer velocity.
    */
   public AngularVelocity getVelocity() {
     return indexerInputs.velocity;

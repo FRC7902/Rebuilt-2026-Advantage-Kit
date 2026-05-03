@@ -129,12 +129,15 @@ public final class Constants {
             .withIdleMode(MotorMode.BRAKE)
             .withTelemetry("LinearIntakeMotor", TelemetryVerbosity.HIGH);
 
+    public static final Distance MAX_DISTANCE = Meters.of(0.3132);
+    public static final double STARTING_ANGLE = 180 + 24.159;
+
     public static final ElevatorConfig ELEVATOR_CONFIG =
         new ElevatorConfig()
-            .withStartingHeight(Meters.of(0.3132))
-            .withHardLimits(Meters.of(0), Meters.of(0.3132))
+            .withStartingHeight(MAX_DISTANCE)
+            .withHardLimits(Meters.of(0), MAX_DISTANCE)
             .withTelemetry("LinearIntakeMech", TelemetryVerbosity.HIGH)
-            .withAngle(Degrees.of(180 + 24.159))
+            .withAngle(Degrees.of(STARTING_ANGLE))
             .withMass(WEIGHT);
   }
 

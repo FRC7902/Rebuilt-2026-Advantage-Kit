@@ -118,8 +118,9 @@ public class LinearIntakeSubsystem extends SubsystemBase {
   }
 
   public Pose3d getPose3d() {
-    double angle = Math.toRadians(180 + 24.159);
-    double position = linearIntakeInputs.position.in(Meters) * -1 + 0.3132;
+    double angle = Math.toRadians(LinearIntakeConstants.STARTING_ANGLE);
+    double position =
+        linearIntakeInputs.position.in(Meters) * -1 + LinearIntakeConstants.MAX_DISTANCE.in(Meters);
 
     // Convert distance vector to x and z components based on angle
     double x = position * Math.cos(angle);
