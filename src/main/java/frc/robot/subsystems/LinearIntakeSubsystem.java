@@ -78,7 +78,7 @@ public class LinearIntakeSubsystem extends SubsystemBase {
 
   private void updateInputs() {
     linearIntakeInputs.setpoint =
-        smcConfig.convertFromMechanism(linearIntake.getMechanismSetpoint().orElse(Rotations.of(1)));
+        smcConfig.convertFromMechanism(linearIntake.getMechanismSetpoint().orElse(Rotations.of(0)));
     linearIntakeInputs.position = linearIntake.getHeight();
     linearIntakeInputs.velocity = linearIntake.getVelocity();
     linearIntakeInputs.current = linearIntakeSMC.getStatorCurrent();
