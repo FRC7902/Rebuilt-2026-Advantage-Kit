@@ -35,7 +35,8 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class HoodSubsystem extends SubsystemBase {
 
   /**
-   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to
+   * the SMC is an
    * Output. Everything coming from the SMC is an Input.
    */
   @AutoLog
@@ -49,30 +50,33 @@ public class HoodSubsystem extends SubsystemBase {
 
   private final HoodInputsAutoLogged hoodInputs = new HoodInputsAutoLogged();
 
-  private final TalonFX hoodMotor;
+  private final TalonFX motor;
 
   // YAMS Configurations
   private final SmartMotorControllerConfig smcConfig;
-  private final SmartMotorController hoodSMC;
+  private final SmartMotorController smc;
   private final ArmConfig hoodCfg;
 
   // Arm Mechanism
   private final Arm hood;
 
   public HoodSubsystem() {
-    hoodMotor = new TalonFX(HoodConstants.CAN_ID);
+    motor = new TalonFX(HoodConstants.CAN_ID);
     smcConfig = HoodConstants.SMC_CONFIG.withSubsystem(this);
-    hoodSMC = new TalonFXWrapper(hoodMotor, HoodConstants.MOTOR_TYPE, smcConfig);
-    hoodCfg = HoodConstants.ARM_CONFIG.withSmartMotorController(hoodSMC);
+    smc = new TalonFXWrapper(motor, HoodConstants.MOTOR_TYPE, smcConfig);
+    hoodCfg = HoodConstants.ARM_CONFIG.withSmartMotorController(smc);
     hood = new Arm(hoodCfg);
   }
 
-  /** Updates AdvantageKit inputs from the {@link Arm} to be used in the rest of the program. */
+  /**
+   * Updates AdvantageKit inputs from the {@link Arm} to be used in the rest of
+   * the program.
+   */
   public void updateInputs() {
     hoodInputs.pivotPosition = hood.getAngle();
-    hoodInputs.pivotVelocity = hoodSMC.getMechanismVelocity();
-    hoodInputs.pivotAppliedVolts = hoodSMC.getVoltage();
-    hoodInputs.pivotCurrent = hoodSMC.getStatorCurrent();
+    hoodInputs.pivotVelocity = smc.getMechanismVelocity();
+    hoodInputs.pivotAppliedVolts = smc.getVoltage();
+    hoodInputs.pivotCurrent = smc.getStatorCurrent();
   }
 
   /**
@@ -114,7 +118,7 @@ public class HoodSubsystem extends SubsystemBase {
 
   @AutoLogOutput
   public Angle getAngleSetpoint() {
-    return hoodSMC.getMechanismPositionSetpoint().orElse(null);
+    return smc.getMechanismPositionSetpoint().orElse(null);
   }
 
   public Angle getAngle() {

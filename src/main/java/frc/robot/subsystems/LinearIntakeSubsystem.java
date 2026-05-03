@@ -52,7 +52,7 @@ public class LinearIntakeSubsystem extends SubsystemBase {
   private final SparkMax linearIntakeMotor2 = new SparkMax(31, SparkLowLevel.MotorType.kBrushless);
 
   private final SmartMotorControllerConfig smcConfig;
-  private final SmartMotorController linearIntakeSMC;
+  private final SmartMotorController smc;
   private ElevatorConfig linearIntakeConfig;
   private final Elevator linearIntake;
 
@@ -62,10 +62,8 @@ public class LinearIntakeSubsystem extends SubsystemBase {
             .withSubsystem(this)
             // LinearIntake motor2 follows LinearIntake motor with an inversed output.
             .withFollowers(Pair.of(linearIntakeMotor2, LinearIntakeConstants.MOTOR2_INVERTED));
-    linearIntakeSMC =
-        new SparkWrapper(linearIntakeMotor, LinearIntakeConstants.MOTOR_TYPE, smcConfig);
-    linearIntakeConfig =
-        LinearIntakeConstants.ELEVATOR_CONFIG.withSmartMotorController(linearIntakeSMC);
+    smc = new SparkWrapper(linearIntakeMotor, LinearIntakeConstants.MOTOR_TYPE, smcConfig);
+    linearIntakeConfig = LinearIntakeConstants.ELEVATOR_CONFIG.withSmartMotorController(smc);
     linearIntake = new Elevator(linearIntakeConfig);
 
     new Trigger(() -> getHeight().lte(Meters.of(0.1)))
@@ -81,23 +79,25 @@ public class LinearIntakeSubsystem extends SubsystemBase {
         smcConfig.convertFromMechanism(linearIntake.getMechanismSetpoint().orElse(Rotations.of(0)));
     linearIntakeInputs.position = linearIntake.getHeight();
     linearIntakeInputs.velocity = linearIntake.getVelocity();
-    linearIntakeInputs.current = linearIntakeSMC.getStatorCurrent();
-    linearIntakeInputs.volts = linearIntakeSMC.getVoltage();
+    linearIntakeInputs.current = smc.getStatorCurrent();
+    linearIntakeInputs.volts = smc.getVoltage();
   }
 
+  @Override
   public void periodic() {
     updateInputs();
     Logger.processInputs("LinearIntake", linearIntakeInputs);
     linearIntake.updateTelemetry();
   }
 
+  @Override
   public void simulationPeriodic() {
     linearIntake.simIterate();
   }
 
-  public Command elevCmd(double dutycycle) {
-    Logger.recordOutput("LinearIntake/DutyCycle", dutycycle);
-    return linearIntake.set(dutycycle);
+  public Command setDutyCycle(double dutyCycle) {
+    Logger.recordOutput("LinearIntake/DutyCycle", dutyCycle);
+    return linearIntake.set(dutyCycle);
   }
 
   public Command setHeight(Distance height) {

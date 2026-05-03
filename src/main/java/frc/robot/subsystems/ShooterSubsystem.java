@@ -2,40 +2,33 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Pounds;
 import static edu.wpi.first.units.Units.RPM;
-import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.ShooterConstants;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
-import yams.gearing.GearBox;
-import yams.gearing.MechanismGearing;
 import yams.mechanisms.config.FlyWheelConfig;
 import yams.mechanisms.velocity.FlyWheel;
 import yams.motorcontrollers.SmartMotorController;
 import yams.motorcontrollers.SmartMotorControllerConfig;
-import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
-import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.local.SparkWrapper;
 
 /** AdvantageKit Shooter Subsystem, capable of replaying the shooter. */
 public class ShooterSubsystem extends SubsystemBase {
 
   /**
-   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to
+   * the SMC is an
    * Output. Everything coming from the SMC is an Input.
    */
   @AutoLog
@@ -49,38 +42,27 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private final ShooterInputsAutoLogged shooterInputs = new ShooterInputsAutoLogged();
 
-  private final SparkMax armMotor = new SparkMax(20, MotorType.kBrushless);
+  private final SparkMax armMotor = new SparkMax(ShooterConstants.CAN_ID, MotorType.kBrushless);
 
-  private final SmartMotorControllerConfig motorConfig =
-      new SmartMotorControllerConfig(this)
-          .withClosedLoopController(1, 0, 0, RPM.of(10000), RPM.per(Second).of(60))
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
-          .withIdleMode(MotorMode.COAST)
-          .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
-          .withStatorCurrentLimit(Amps.of(40))
-          .withMotorInverted(false)
-          .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-          .withControlMode(ControlMode.CLOSED_LOOP);
-  private final SmartMotorController motor =
-      new SparkWrapper(armMotor, DCMotor.getNEO(1), motorConfig);
-  private final FlyWheelConfig shooterConfig =
-      new FlyWheelConfig(motor)
-          // Diameter of the flywheel.
-          .withDiameter(Inches.of(4))
-          // Mass of the flywheel.
-          .withMass(Pounds.of(1))
-          .withTelemetry("ShooterMech", TelemetryVerbosity.HIGH);
-  private final FlyWheel shooter = new FlyWheel(shooterConfig);
+  private final SmartMotorControllerConfig smcConfig;
+  private final SmartMotorController smc;
+  private final FlyWheelConfig shooterConfig;
+  private final FlyWheel shooter;
+
+  public ShooterSubsystem() {
+    smcConfig = ShooterConstants.SMC_CONFIG.withSubsystem(this);
+    smc = new SparkWrapper(armMotor, ShooterConstants.MOTOR_TYPE, smcConfig);
+    shooterConfig = ShooterConstants.FLYWHEEL_CONFIG.withSmartMotorController(smc);
+    shooter = new FlyWheel(shooterConfig);
+  }
 
   /** Update the AdvantageKit "inputs" (data coming from the SMC) */
   private void updateInputs() {
     shooterInputs.velocity = shooter.getSpeed();
-    shooterInputs.setpoint = motor.getMechanismSetpointVelocity().orElse(RPM.of(0));
-    shooterInputs.volts = motor.getVoltage();
-    shooterInputs.current = motor.getStatorCurrent();
+    shooterInputs.setpoint = smc.getMechanismSetpointVelocity().orElse(RPM.of(0));
+    shooterInputs.volts = smc.getVoltage();
+    shooterInputs.current = smc.getStatorCurrent();
   }
-
-  public ShooterSubsystem() {}
 
   /**
    * Gets the current velocity of the shooter.

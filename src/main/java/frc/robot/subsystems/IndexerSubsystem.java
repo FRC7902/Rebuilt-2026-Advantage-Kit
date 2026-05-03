@@ -41,9 +41,9 @@ public class IndexerSubsystem extends SubsystemBase {
 
   private final IndexerInputsAutoLogged indexerInputs = new IndexerInputsAutoLogged();
 
-  private final SparkMax someMotor = new SparkMax(21, MotorType.kBrushless);
+  private final SparkMax motor = new SparkMax(21, MotorType.kBrushless);
 
-  private final SmartMotorControllerConfig motorConfig =
+  private final SmartMotorControllerConfig smcConfig =
       new SmartMotorControllerConfig(this)
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
           .withIdleMode(MotorMode.COAST)
@@ -51,14 +51,13 @@ public class IndexerSubsystem extends SubsystemBase {
           .withStatorCurrentLimit(Amps.of(40))
           .withMotorInverted(false)
           .withControlMode(ControlMode.OPEN_LOOP);
-  private final SmartMotorController motor =
-      new SparkWrapper(someMotor, DCMotor.getNEO(1), motorConfig);
+  private final SmartMotorController smc = new SparkWrapper(motor, DCMotor.getNEO(1), smcConfig);
 
   /** Update the AdvantageKit "inputs" (data coming from the SMC) */
   private void updateInputs() {
-    indexerInputs.velocity = motor.getMechanismVelocity();
-    indexerInputs.volts = motor.getVoltage();
-    indexerInputs.current = motor.getStatorCurrent();
+    indexerInputs.velocity = smc.getMechanismVelocity();
+    indexerInputs.volts = smc.getVoltage();
+    indexerInputs.current = smc.getStatorCurrent();
   }
 
   public IndexerSubsystem() {}
@@ -81,7 +80,7 @@ public class IndexerSubsystem extends SubsystemBase {
   public Command setVoltage(Voltage volts) {
     return run(() -> {
           Logger.recordOutput("Indexer/Voltage", volts);
-          motor.setVoltage(volts);
+          smc.setVoltage(volts);
         })
         .withName("IndexerSetVoltage");
   }
@@ -95,7 +94,7 @@ public class IndexerSubsystem extends SubsystemBase {
   public Command set(double dutyCycle) {
     return run(() -> {
           Logger.recordOutput("Indexer/DutyCycle", dutyCycle);
-          motor.setDutyCycle(dutyCycle);
+          smc.setDutyCycle(dutyCycle);
         })
         .withName("IndexerSetDutyCycle");
   }
@@ -109,20 +108,20 @@ public class IndexerSubsystem extends SubsystemBase {
   public Command setDutyCycle(Supplier<Double> dutyCycle) {
     return run(() -> {
           Logger.recordOutput("Indexer/DutyCycle", dutyCycle.get());
-          motor.setDutyCycle(dutyCycle.get());
+          smc.setDutyCycle(dutyCycle.get());
         })
         .withName("IndexerSetDutyCycleSupplier");
   }
 
   @Override
   public void simulationPeriodic() {
-    motor.simIterate();
+    smc.simIterate();
   }
 
   @Override
   public void periodic() {
     updateInputs();
     Logger.processInputs("Indexer", indexerInputs);
-    motor.updateTelemetry();
+    smc.updateTelemetry();
   }
 }

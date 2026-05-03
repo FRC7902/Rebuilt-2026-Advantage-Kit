@@ -16,10 +16,13 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
+import static edu.wpi.first.units.Units.RPM;
+import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
@@ -30,6 +33,7 @@ import yams.gearing.MechanismGearing;
 import yams.math.ExponentialProfilePIDController;
 import yams.mechanisms.config.ArmConfig;
 import yams.mechanisms.config.ElevatorConfig;
+import yams.mechanisms.config.FlyWheelConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig;
 import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
@@ -78,7 +82,7 @@ public final class Constants {
             .withSimClosedLoopController(18, 0, 0.2)
             .withFeedforward(new ArmFeedforward(-0.1, 1.2, 0, 0))
             .withSimFeedforward(new ArmFeedforward(-0.1, 1.2, 0, 0))
-            .withTelemetry("Hood", TelemetryVerbosity.HIGH)
+            .withTelemetry("HoodMotor", TelemetryVerbosity.HIGH)
             .withGearing(new MechanismGearing(GearBox.fromReductionStages(12.5, 1)))
             .withMotorInverted(false)
             .withIdleMode(MotorMode.BRAKE)
@@ -90,7 +94,7 @@ public final class Constants {
             .withStartingPosition(Degrees.of(0))
             .withLength(Feet.of((14.0 / 12)))
             .withMOI(KilogramSquareMeters.of(0.1055457256))
-            .withTelemetry("Hood", TelemetryVerbosity.HIGH);
+            .withTelemetry("HoodMech", TelemetryVerbosity.HIGH);
   }
 
   public static class LinearIntakeConstants {
@@ -129,8 +133,34 @@ public final class Constants {
         new ElevatorConfig()
             .withStartingHeight(Meters.of(0.3132))
             .withHardLimits(Meters.of(0), Meters.of(0.3132))
-            .withTelemetry("LinearIntake", TelemetryVerbosity.HIGH)
+            .withTelemetry("LinearIntakeMech", TelemetryVerbosity.HIGH)
             .withAngle(Degrees.of(180 + 24.159))
             .withMass(WEIGHT);
+  }
+
+  public static class ShooterConstants {
+    public static final int CAN_ID = 20;
+    public static final DCMotor MOTOR_TYPE = DCMotor.getNEO(1);
+
+    public static final SmartMotorControllerConfig SMC_CONFIG =
+        new SmartMotorControllerConfig()
+            .withClosedLoopController(1, 0, 0)
+            .withTrapezoidalProfile(RPM.of(10000), RPM.per(Second).of(60))
+            .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
+            .withIdleMode(MotorMode.COAST)
+            .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
+            .withStatorCurrentLimit(Amps.of(40))
+            .withMotorInverted(false)
+            .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+            .withControlMode(ControlMode.CLOSED_LOOP);
+    ;
+
+    public static final FlyWheelConfig FLYWHEEL_CONFIG =
+        new FlyWheelConfig()
+            // Diameter of the flywheel.
+            .withDiameter(Inches.of(4))
+            // Mass of the flywheel.
+            .withMass(Pounds.of(1))
+            .withTelemetry("ShooterMech", TelemetryVerbosity.HIGH);
   }
 }
