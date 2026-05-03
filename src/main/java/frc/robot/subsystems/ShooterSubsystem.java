@@ -7,7 +7,6 @@ import static edu.wpi.first.units.Units.Volts;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
@@ -27,8 +26,7 @@ import yams.motorcontrollers.local.SparkWrapper;
 public class ShooterSubsystem extends SubsystemBase {
 
   /**
-   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to
-   * the SMC is an
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
    * Output. Everything coming from the SMC is an Input.
    */
   @AutoLog

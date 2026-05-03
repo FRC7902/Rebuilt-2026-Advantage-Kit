@@ -95,7 +95,7 @@ public class LinearIntakeSubsystem extends SubsystemBase {
     linearIntake.simIterate();
   }
 
-  public Command setDutyCycle(double dutyCycle) {
+  public Command set(double dutyCycle) {
     Logger.recordOutput("LinearIntake/DutyCycle", dutyCycle);
     return linearIntake.set(dutyCycle);
   }
