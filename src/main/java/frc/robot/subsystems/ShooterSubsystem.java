@@ -26,8 +26,7 @@ import yams.motorcontrollers.local.SparkWrapper;
 public class ShooterSubsystem extends SubsystemBase {
 
   /**
-   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to
-   * the SMC is an
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
    * Output. Everything coming from the SMC is an Input.
    */
   @AutoLog

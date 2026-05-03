@@ -31,8 +31,7 @@ import yams.motorcontrollers.remote.TalonFXWrapper;
 public class HoodSubsystem extends SubsystemBase {
 
   /**
-   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to
-   * the SMC is an
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
    * Output. Everything coming from the SMC is an Input.
    */
   @AutoLog
@@ -64,10 +63,7 @@ public class HoodSubsystem extends SubsystemBase {
     hood = new Arm(hoodCfg);
   }
 
-  /**
-   * Updates AdvantageKit inputs from the {@link Arm} to be used in the rest of
-   * the program.
-   */
+  /** Updates AdvantageKit inputs from the {@link Arm} to be used in the rest of the program. */
   public void updateInputs() {
     hoodInputs.pivotPosition = hood.getAngle();
     hoodInputs.pivotVelocity = smc.getMechanismVelocity();
