@@ -28,7 +28,8 @@ import yams.motorcontrollers.local.SparkWrapper;
 public class IndexerSubsystem extends SubsystemBase {
 
   /**
-   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to
+   * the SMC is an
    * Output. Everything coming from the SMC is an Input.
    */
   @AutoLog
@@ -43,14 +44,13 @@ public class IndexerSubsystem extends SubsystemBase {
 
   private final SparkMax motor = new SparkMax(21, MotorType.kBrushless);
 
-  private final SmartMotorControllerConfig smcConfig =
-      new SmartMotorControllerConfig(this)
-          .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
-          .withIdleMode(MotorMode.COAST)
-          .withTelemetry("IndexerMotor", TelemetryVerbosity.HIGH)
-          .withStatorCurrentLimit(Amps.of(40))
-          .withMotorInverted(false)
-          .withControlMode(ControlMode.OPEN_LOOP);
+  private final SmartMotorControllerConfig smcConfig = new SmartMotorControllerConfig(this)
+      .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
+      .withIdleMode(MotorMode.COAST)
+      .withTelemetry("IndexerMotor", TelemetryVerbosity.HIGH)
+      .withStatorCurrentLimit(Amps.of(40))
+      .withMotorInverted(false)
+      .withControlMode(ControlMode.OPEN_LOOP);
   private final SmartMotorController smc = new SparkWrapper(motor, DCMotor.getNEO(1), smcConfig);
 
   /** Update the AdvantageKit "inputs" (data coming from the SMC) */
@@ -60,7 +60,8 @@ public class IndexerSubsystem extends SubsystemBase {
     indexerInputs.current = smc.getStatorCurrent();
   }
 
-  public IndexerSubsystem() {}
+  public IndexerSubsystem() {
+  }
 
   /**
    * Gets the current velocity of the indexer.
@@ -79,9 +80,9 @@ public class IndexerSubsystem extends SubsystemBase {
    */
   public Command setVoltage(Voltage volts) {
     return run(() -> {
-          Logger.recordOutput("Indexer/Voltage", volts);
-          smc.setVoltage(volts);
-        })
+      Logger.recordOutput("Indexer/Voltage", volts);
+      smc.setVoltage(volts);
+    })
         .withName("IndexerSetVoltage");
   }
 
@@ -93,9 +94,9 @@ public class IndexerSubsystem extends SubsystemBase {
    */
   public Command set(double dutyCycle) {
     return run(() -> {
-          Logger.recordOutput("Indexer/DutyCycle", dutyCycle);
-          smc.setDutyCycle(dutyCycle);
-        })
+      Logger.recordOutput("Indexer/DutyCycle", dutyCycle);
+      smc.setDutyCycle(dutyCycle);
+    })
         .withName("IndexerSetDutyCycle");
   }
 
@@ -107,9 +108,10 @@ public class IndexerSubsystem extends SubsystemBase {
    */
   public Command setDutyCycle(Supplier<Double> dutyCycle) {
     return run(() -> {
-          Logger.recordOutput("Indexer/DutyCycle", dutyCycle.get());
-          smc.setDutyCycle(dutyCycle.get());
-        })
+      double appliedDutyCycle = dutyCycle.get();
+      Logger.recordOutput("Indexer/DutyCycle", appliedDutyCycle);
+      smc.setDutyCycle(appliedDutyCycle);
+    })
         .withName("IndexerSetDutyCycleSupplier");
   }
 

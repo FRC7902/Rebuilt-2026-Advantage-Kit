@@ -26,7 +26,8 @@ import yams.motorcontrollers.local.SparkWrapper;
 public class ShooterSubsystem extends SubsystemBase {
 
   /**
-   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to the SMC is an
+   * AdvantageKit identifies inputs via the "Replay Bubble". Everything going to
+   * the SMC is an
    * Output. Everything coming from the SMC is an Input.
    */
   @AutoLog
@@ -40,7 +41,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
   private final ShooterInputsAutoLogged shooterInputs = new ShooterInputsAutoLogged();
 
-  private final SparkMax armMotor = new SparkMax(ShooterConstants.CAN_ID, MotorType.kBrushless);
+  private final SparkMax motor = new SparkMax(ShooterConstants.CAN_ID, MotorType.kBrushless);
 
   private final SmartMotorControllerConfig smcConfig;
   private final SmartMotorController smc;
@@ -49,7 +50,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public ShooterSubsystem() {
     smcConfig = ShooterConstants.SMC_CONFIG.withSubsystem(this);
-    smc = new SparkWrapper(armMotor, ShooterConstants.MOTOR_TYPE, smcConfig);
+    smc = new SparkWrapper(motor, ShooterConstants.MOTOR_TYPE, smcConfig);
     shooterConfig = ShooterConstants.FLYWHEEL_CONFIG.withSmartMotorController(smc);
     shooter = new FlyWheel(shooterConfig);
   }
