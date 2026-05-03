@@ -98,8 +98,8 @@ public final class Constants {
   }
 
   public static class LinearIntakeConstants {
-    public static final int MOTOR_CAN_ID = 30;
-    public static final int MOTOR2_CAN_ID = 31;
+    public static final int LEADER_CAN_ID = 30;
+    public static final int FOLLOWER_CAN_ID = 31;
     public static final DCMotor MOTOR_TYPE = DCMotor.getNEO(1);
     public static final boolean MOTOR2_INVERTED = true;
 

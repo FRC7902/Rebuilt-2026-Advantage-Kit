@@ -48,8 +48,10 @@ public class LinearIntakeSubsystem extends SubsystemBase {
   private final LinearIntakeInputsAutoLogged linearIntakeInputs =
       new LinearIntakeInputsAutoLogged();
 
-  private final SparkMax linearIntakeMotor = new SparkMax(30, SparkLowLevel.MotorType.kBrushless);
-  private final SparkMax linearIntakeMotor2 = new SparkMax(31, SparkLowLevel.MotorType.kBrushless);
+  private final SparkMax leaderMotor =
+      new SparkMax(LinearIntakeConstants.LEADER_CAN_ID, SparkLowLevel.MotorType.kBrushless);
+  private final SparkMax followerMotor =
+      new SparkMax(LinearIntakeConstants.FOLLOWER_CAN_ID, SparkLowLevel.MotorType.kBrushless);
 
   private final SmartMotorControllerConfig smcConfig;
   private final SmartMotorController smc;
@@ -61,8 +63,8 @@ public class LinearIntakeSubsystem extends SubsystemBase {
         LinearIntakeConstants.SMC_CONFIG
             .withSubsystem(this)
             // LinearIntake motor2 follows LinearIntake motor with an inversed output.
-            .withFollowers(Pair.of(linearIntakeMotor2, LinearIntakeConstants.MOTOR2_INVERTED));
-    smc = new SparkWrapper(linearIntakeMotor, LinearIntakeConstants.MOTOR_TYPE, smcConfig);
+            .withFollowers(Pair.of(followerMotor, LinearIntakeConstants.MOTOR2_INVERTED));
+    smc = new SparkWrapper(leaderMotor, LinearIntakeConstants.MOTOR_TYPE, smcConfig);
     linearIntakeConfig = LinearIntakeConstants.ELEVATOR_CONFIG.withSmartMotorController(smc);
     linearIntake = new Elevator(linearIntakeConfig);
 
