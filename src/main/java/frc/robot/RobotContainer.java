@@ -4,10 +4,10 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.HoodSubsystem;
+import frc.robot.subsystems.IndexerSubsystem;
 import frc.robot.subsystems.LinearIntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -20,9 +20,10 @@ public class RobotContainer {
   private final HoodSubsystem hood;
   private final LinearIntakeSubsystem linearIntake;
   private final ShooterSubsystem shooter;
+  private final IndexerSubsystem indexer;
 
-  final CommandXboxController driverXbox = new CommandXboxController(0);
-  private final SwerveSubsystem drivebase =
+  final CommandPS4Controller driverController = new CommandPS4Controller(0);
+  private final SwerveSubsystem swerve =
       new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
 
   // Establish a Sendable Chooser that will be able to be sent to the
@@ -35,42 +36,31 @@ public class RobotContainer {
    */
   SwerveInputStream driveAngularVelocity =
       SwerveInputStream.of(
-              drivebase.getSwerveDrive(),
-              () -> driverXbox.getLeftY() * -1,
-              () -> driverXbox.getLeftX() * -1)
-          .withControllerRotationAxis(driverXbox::getRightX)
+              swerve.getSwerveDrive(),
+              () -> driverController.getLeftY() * -1,
+              () -> driverController.getLeftX() * -1)
+          .withControllerRotationAxis(() -> driverController.getRightX() * -1)
           .deadband(OperatorConstants.DEADBAND)
           .scaleTranslation(0.8)
           .allianceRelativeControl(true);
 
   public RobotContainer() {
-    hood = new HoodSubsystem(1);
-    linearIntake = new LinearIntakeSubsystem(2);
-    shooter = new ShooterSubsystem(3);
+    hood = new HoodSubsystem();
+    linearIntake = new LinearIntakeSubsystem();
+    shooter = new ShooterSubsystem();
+    indexer = new IndexerSubsystem();
 
     configureBindings();
   }
 
   public void publishComponentPoses() {
     Logger.recordOutput(
-        "3D/ComponentPoses",
-        new Pose3d[] {
-          linearIntake.getPose3d(), hood.getPose3d(),
-          // shooter.getPose3d()
-        });
+        "3D/ComponentPoses", new Pose3d[] {linearIntake.getPose3d(), hood.getPose3d()});
   }
 
   private void configureBindings() {
-    Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
-    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-
-    driverXbox.a().onTrue(hood.setAngle(0.0));
-    driverXbox.b().onTrue(hood.setAngle(0.3));
-    driverXbox.x().onTrue(hood.setAngle(-0.3));
-
-    driverXbox.povDown().onTrue(linearIntake.setExtension(0));
-    driverXbox.povRight().onTrue(linearIntake.setExtension(0.5));
-    driverXbox.povUp().onTrue(linearIntake.setExtension(1.2));
+    Command driveFieldOrientedAnglularVelocity = swerve.driveFieldOriented(driveAngularVelocity);
+    swerve.setDefaultCommand(driveFieldOrientedAnglularVelocity);
   }
 
   /**
