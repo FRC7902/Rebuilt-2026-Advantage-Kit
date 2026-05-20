@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
+import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -91,7 +92,9 @@ public class HoodSubsystem extends SubsystemBase {
 
   /** Run sysId on the {@link Arm} */
   public Command sysId() {
-    return hood.sysId(Volts.of(7), Volts.of(2).per(Second), Seconds.of(4));
+    return hood.sysId(Volts.of(1), Volts.of(0.5).per(Second), Seconds.of(10))
+        .beforeStarting(() -> SignalLogger.start())
+        .finallyDo(() -> SignalLogger.stop());
   }
 
   @Override
