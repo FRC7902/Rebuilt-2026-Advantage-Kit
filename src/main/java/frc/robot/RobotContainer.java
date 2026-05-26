@@ -24,25 +24,26 @@ public class RobotContainer {
   private final IndexerSubsystem indexer;
 
   final CommandPS4Controller driverController = new CommandPS4Controller(0);
-  private final SwerveSubsystem swerve = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
+  private final SwerveSubsystem swerve =
+      new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
 
   // Establish a Sendable Chooser that will be able to be sent to the
   // SmartDashboard, allowing selection of desired auto
   private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
   /**
-   * Converts driver input into a field-relative ChassisSpeeds that is controlled
-   * by angular
+   * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular
    * velocity.
    */
-  SwerveInputStream driveAngularVelocity = SwerveInputStream.of(
-      swerve.getSwerveDrive(),
-      () -> driverController.getLeftY() * -1,
-      () -> driverController.getLeftX() * -1)
-      .withControllerRotationAxis(() -> driverController.getRightX() * -1)
-      .deadband(OperatorConstants.DEADBAND)
-      .scaleTranslation(0.8)
-      .allianceRelativeControl(true);
+  SwerveInputStream driveAngularVelocity =
+      SwerveInputStream.of(
+              swerve.getSwerveDrive(),
+              () -> driverController.getLeftY() * -1,
+              () -> driverController.getLeftX() * -1)
+          .withControllerRotationAxis(() -> driverController.getRightX() * -1)
+          .deadband(OperatorConstants.DEADBAND)
+          .scaleTranslation(0.8)
+          .allianceRelativeControl(true);
 
   public RobotContainer() {
     hood = new HoodSubsystem();
@@ -57,7 +58,7 @@ public class RobotContainer {
 
   public void publishComponentPoses() {
     Logger.recordOutput(
-        "3D/ComponentPoses", new Pose3d[] { linearIntake.getPose3d(), hood.getPose3d() });
+        "3D/ComponentPoses", new Pose3d[] {linearIntake.getPose3d(), hood.getPose3d()});
   }
 
   private void configureBindings() {
