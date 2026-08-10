@@ -82,6 +82,15 @@ public class HoodSubsystem extends SubsystemBase {
   }
 
   /**
+   * Set the angle of the hood.
+   *
+   * @param angle Angle to go to.
+   */
+  public Command setAngleAndStop(Angle angle) {
+    return hood.runTo(angle, HoodConstants.TOLERANCE);
+  }
+
+  /**
    * Move the hood up and down.
    *
    * @param dutyCycle [-1, 1] speed to set the hood too.

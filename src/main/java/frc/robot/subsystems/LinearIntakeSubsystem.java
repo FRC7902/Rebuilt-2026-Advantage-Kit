@@ -107,6 +107,11 @@ public class LinearIntakeSubsystem extends SubsystemBase {
     return linearIntake.setHeight(height);
   }
 
+  public Command setHeightAndStop(Distance height) {
+    Logger.recordOutput("LinearIntake/Setpoint", height);
+    return linearIntake.runTo(height, LinearIntakeConstants.TOLERANCE);
+  }
+
   public Command sysId() {
     return linearIntake.sysId(Volts.of(12), Volts.of(12).per(Second), Second.of(30));
   }
