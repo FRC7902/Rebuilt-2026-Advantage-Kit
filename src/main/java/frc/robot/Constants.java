@@ -40,8 +40,10 @@ import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
 import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 
 /**
- * This class defines the runtime mode used by AdvantageKit. The mode is always "real" when running
- * on a roboRIO. Change the value of "simMode" to switch between "sim" (physics sim) and "replay"
+ * This class defines the runtime mode used by AdvantageKit. The mode is always
+ * "real" when running
+ * on a roboRIO. Change the value of "simMode" to switch between "sim" (physics
+ * sim) and "replay"
  * (log replay from a file).
  */
 public final class Constants {
@@ -74,27 +76,25 @@ public final class Constants {
     public static final int CAN_ID = 40;
     public static final DCMotor MOTOR_TYPE = DCMotor.getFalcon500(1);
 
-    public static final SmartMotorControllerConfig SMC_CONFIG =
-        new SmartMotorControllerConfig()
-            .withControlMode(ControlMode.CLOSED_LOOP)
-            .withClosedLoopController(18, 0, 0.2)
-            .withTrapezoidalProfile(DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
-            .withSimClosedLoopController(18, 0, 0.2)
-            .withFeedforward(new ArmFeedforward(-0.1, 0.9, 0, 0))
-            .withSimFeedforward(new ArmFeedforward(-0.1, 0.9, 0, 0))
-            .withTelemetry("HoodMotor", TelemetryVerbosity.HIGH)
-            .withGearing(new MechanismGearing(GearBox.fromReductionStages(12.5, 1)))
-            .withMotorInverted(false)
-            .withIdleMode(MotorMode.BRAKE)
-            .withStatorCurrentLimit(Amps.of(120));
+    public static final SmartMotorControllerConfig SMC_CONFIG = new SmartMotorControllerConfig()
+        .withControlMode(ControlMode.CLOSED_LOOP)
+        .withClosedLoopController(18, 0, 0.2)
+        .withTrapezoidalProfile(DegreesPerSecond.of(458), DegreesPerSecondPerSecond.of(688))
+        .withSimClosedLoopController(15.0, 0, 1.0)
+        .withFeedforward(new ArmFeedforward(-0.1, 0.9, 0, 0))
+        .withSimFeedforward(new ArmFeedforward(-0.1, 0.9, 0, 0))
+        .withTelemetry("HoodMotor", TelemetryVerbosity.HIGH)
+        .withGearing(new MechanismGearing(GearBox.fromReductionStages(12.5, 1)))
+        .withMotorInverted(false)
+        .withIdleMode(MotorMode.BRAKE)
+        .withStatorCurrentLimit(Amps.of(120));
 
-    public static final ArmConfig ARM_CONFIG =
-        new ArmConfig()
-            .withHardLimit(Degrees.of(0), Degrees.of(40))
-            .withStartingPosition(Degrees.of(0))
-            .withLength(Feet.of((14.0 / 12)))
-            .withMOI(KilogramSquareMeters.of(0.1055457256))
-            .withTelemetry("HoodMech", TelemetryVerbosity.HIGH);
+    public static final ArmConfig ARM_CONFIG = new ArmConfig()
+        .withHardLimit(Degrees.of(0), Degrees.of(40))
+        .withStartingPosition(Degrees.of(0))
+        .withLength(Feet.of((14.0 / 12)))
+        .withMOI(KilogramSquareMeters.of(0.1055457256))
+        .withTelemetry("HoodMech", TelemetryVerbosity.HIGH);
   }
 
   public static class LinearIntakeConstants {
@@ -108,62 +108,56 @@ public final class Constants {
     private static final Distance CIRCUMFERENCE = CHAIN_PITCH.times(TOOTH_COUNT);
     private static final Distance RADIUS = CIRCUMFERENCE.div(2 * Math.PI);
     private static final Mass WEIGHT = Pounds.of(16);
-    private static final MechanismGearing GEARING =
-        new MechanismGearing(GearBox.fromReductionStages(3, 4));
+    private static final MechanismGearing GEARING = new MechanismGearing(GearBox.fromReductionStages(3, 4));
 
-    public static final SmartMotorControllerConfig SMC_CONFIG =
-        new SmartMotorControllerConfig()
-            .withControlMode(ControlMode.CLOSED_LOOP)
-            .withMechanismCircumference(Inches.of(0.25).times(22)) // chain pitch * tooth count
-            .withClosedLoopController(30, 0, 0)
-            .withSimClosedLoopController(30, 0, 0)
-            .withExponentialProfile(
-                ExponentialProfilePIDController.createElevatorConstraints(
-                    Volts.of(12), MOTOR_TYPE, WEIGHT, RADIUS, GEARING))
-            .withFeedforward(new ElevatorFeedforward(0, 0.1, 0, 0))
-            .withSimFeedforward(new ElevatorFeedforward(0, 0.1, 0, 0))
-            .withStatorCurrentLimit(Amps.of(40))
-            .withMotorInverted(false)
-            .withSoftLimit(Meters.of(0), Meters.of(2))
-            .withGearing(GEARING)
-            .withIdleMode(MotorMode.BRAKE)
-            .withTelemetry("LinearIntakeMotor", TelemetryVerbosity.HIGH);
+    public static final SmartMotorControllerConfig SMC_CONFIG = new SmartMotorControllerConfig()
+        .withControlMode(ControlMode.CLOSED_LOOP)
+        .withMechanismCircumference(Inches.of(0.25).times(22)) // chain pitch * tooth count
+        .withClosedLoopController(30, 0, 0)
+        .withSimClosedLoopController(100.0, 0, 0)
+        .withExponentialProfile(
+            ExponentialProfilePIDController.createElevatorConstraints(
+                Volts.of(12), MOTOR_TYPE, WEIGHT, RADIUS, GEARING))
+        .withFeedforward(new ElevatorFeedforward(0, 0.1, 0, 0))
+        .withSimFeedforward(new ElevatorFeedforward(0, 0.61, 0, 0))
+        .withStatorCurrentLimit(Amps.of(40))
+        .withMotorInverted(false)
+        .withSoftLimit(Meters.of(0), Meters.of(2))
+        .withGearing(GEARING)
+        .withIdleMode(MotorMode.BRAKE)
+        .withTelemetry("LinearIntakeMotor", TelemetryVerbosity.HIGH);
 
     public static final Distance MAX_DISTANCE = Meters.of(0.3132);
     public static final double STARTING_ANGLE = 180 + 24.159;
 
-    public static final ElevatorConfig ELEVATOR_CONFIG =
-        new ElevatorConfig()
-            .withStartingHeight(MAX_DISTANCE)
-            .withHardLimits(Meters.of(0), MAX_DISTANCE)
-            .withTelemetry("LinearIntakeMech", TelemetryVerbosity.HIGH)
-            .withAngle(Degrees.of(STARTING_ANGLE))
-            .withMass(WEIGHT);
+    public static final ElevatorConfig ELEVATOR_CONFIG = new ElevatorConfig()
+        .withStartingHeight(MAX_DISTANCE)
+        .withHardLimits(Meters.of(0), MAX_DISTANCE)
+        .withTelemetry("LinearIntakeMech", TelemetryVerbosity.HIGH)
+        .withAngle(Degrees.of(STARTING_ANGLE))
+        .withMass(WEIGHT);
   }
 
   public static class ShooterConstants {
     public static final int CAN_ID = 20;
     public static final DCMotor MOTOR_TYPE = DCMotor.getNEO(1);
 
-    public static final SmartMotorControllerConfig SMC_CONFIG =
-        new SmartMotorControllerConfig()
-            .withClosedLoopController(1, 0, 0)
-            .withTrapezoidalProfile(RPM.of(10000), RPM.per(Second).of(60))
-            .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
-            .withIdleMode(MotorMode.COAST)
-            .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
-            .withStatorCurrentLimit(Amps.of(40))
-            .withMotorInverted(false)
-            .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
-            .withControlMode(ControlMode.CLOSED_LOOP);
-    ;
+    public static final SmartMotorControllerConfig SMC_CONFIG = new SmartMotorControllerConfig()
+        .withClosedLoopController(1, 0, 0)
+        .withTrapezoidalProfile(RPM.of(10000), RPM.per(Second).of(60))
+        .withGearing(new MechanismGearing(GearBox.fromReductionStages(3, 4)))
+        .withIdleMode(MotorMode.COAST)
+        .withTelemetry("ShooterMotor", TelemetryVerbosity.HIGH)
+        .withStatorCurrentLimit(Amps.of(40))
+        .withMotorInverted(false)
+        .withFeedforward(new SimpleMotorFeedforward(0, 0, 0))
+        .withControlMode(ControlMode.CLOSED_LOOP);;
 
-    public static final FlyWheelConfig FLYWHEEL_CONFIG =
-        new FlyWheelConfig()
-            // Diameter of the flywheel.
-            .withDiameter(Inches.of(4))
-            // Mass of the flywheel.
-            .withMass(Pounds.of(1))
-            .withTelemetry("ShooterMech", TelemetryVerbosity.HIGH);
+    public static final FlyWheelConfig FLYWHEEL_CONFIG = new FlyWheelConfig()
+        // Diameter of the flywheel.
+        .withDiameter(Inches.of(4))
+        // Mass of the flywheel.
+        .withMass(Pounds.of(1))
+        .withTelemetry("ShooterMech", TelemetryVerbosity.HIGH);
   }
 }
