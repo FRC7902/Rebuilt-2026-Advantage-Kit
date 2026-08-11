@@ -78,10 +78,11 @@ public class IndexerSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command setVoltage(Voltage volts) {
-    return run(() -> {
-          Logger.recordOutput("Indexer/Voltage", volts);
-          smc.setVoltage(volts);
-        })
+    return this.runOnce(
+            () -> {
+              Logger.recordOutput("Indexer/Voltage", volts);
+              smc.setVoltage(volts);
+            })
         .withName("IndexerSetVoltage");
   }
 
@@ -92,10 +93,11 @@ public class IndexerSubsystem extends SubsystemBase {
    * @return {@link edu.wpi.first.wpilibj2.command.RunCommand}
    */
   public Command set(double dutyCycle) {
-    return run(() -> {
-          Logger.recordOutput("Indexer/DutyCycle", dutyCycle);
-          smc.setDutyCycle(dutyCycle);
-        })
+    return this.runOnce(
+            () -> {
+              Logger.recordOutput("Indexer/DutyCycle", dutyCycle);
+              smc.setDutyCycle(dutyCycle);
+            })
         .withName("IndexerSetDutyCycle");
   }
 
@@ -106,11 +108,12 @@ public class IndexerSubsystem extends SubsystemBase {
    * @return Command
    */
   public Command setDutyCycle(Supplier<Double> dutyCycle) {
-    return run(() -> {
-          double appliedDutyCycle = dutyCycle.get();
-          Logger.recordOutput("Indexer/DutyCycle", appliedDutyCycle);
-          smc.setDutyCycle(appliedDutyCycle);
-        })
+    return this.runOnce(
+            () -> {
+              double appliedDutyCycle = dutyCycle.get();
+              Logger.recordOutput("Indexer/DutyCycle", appliedDutyCycle);
+              smc.setDutyCycle(appliedDutyCycle);
+            })
         .withName("IndexerSetDutyCycleSupplier");
   }
 
