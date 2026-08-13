@@ -1,6 +1,13 @@
 package frc.robot;
 
+import java.io.File;
+
+import org.littletonrobotics.junction.Logger;
+
 import edu.wpi.first.math.geometry.Pose3d;
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.RPM;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -13,13 +20,6 @@ import frc.robot.subsystems.IndexerSubsystem;
 import frc.robot.subsystems.LinearIntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.SwerveSubsystem;
-
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.RPM;
-
-import java.io.File;
-import org.littletonrobotics.junction.Logger;
 import swervelib.SwerveInputStream;
 
 public class RobotContainer {
@@ -30,25 +30,26 @@ public class RobotContainer {
   private final IndexerSubsystem indexer;
 
   final CommandPS4Controller driverController = new CommandPS4Controller(0);
-  private final SwerveSubsystem swerve = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
+  private final SwerveSubsystem swerve =
+      new SwerveSubsystem(new File(Filesystem.getDeployDirectory(), "swerve"));
 
   // Establish a Sendable Chooser that will be able to be sent to the
   // SmartDashboard, allowing selection of desired auto
   private final SendableChooser<Command> autoChooser = new SendableChooser<>();
 
   /**
-   * Converts driver input into a field-relative ChassisSpeeds that is controlled
-   * by angular
+   * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular
    * velocity.
    */
-  SwerveInputStream driveAngularVelocity = SwerveInputStream.of(
-      swerve.getSwerveDrive(),
-      () -> driverController.getLeftY() * -1,
-      () -> driverController.getLeftX() * -1)
-      .withControllerRotationAxis(() -> driverController.getRightX() * -1)
-      .deadband(OperatorConstants.DEADBAND)
-      .scaleTranslation(0.8)
-      .allianceRelativeControl(true);
+  SwerveInputStream driveAngularVelocity =
+      SwerveInputStream.of(
+              swerve.getSwerveDrive(),
+              () -> driverController.getLeftY() * -1,
+              () -> driverController.getLeftX() * -1)
+          .withControllerRotationAxis(() -> driverController.getRightX() * -1)
+          .deadband(OperatorConstants.DEADBAND)
+          .scaleTranslation(0.8)
+          .allianceRelativeControl(true);
 
   public RobotContainer() {
     hood = new HoodSubsystem();
@@ -63,7 +64,7 @@ public class RobotContainer {
 
   public void publishComponentPoses() {
     Logger.recordOutput(
-        "3D/ComponentPoses", new Pose3d[] { linearIntake.getPose3d(), hood.getPose3d() });
+        "3D/ComponentPoses", new Pose3d[] {linearIntake.getPose3d(), hood.getPose3d()});
   }
 
   private void configureBindings() {
@@ -71,9 +72,34 @@ public class RobotContainer {
     swerve.setDefaultCommand(driveFieldOrientedAnglularVelocity);
 
     // Bind commands to buttons on the driver controller here:
+    driverController
+        .button(1)
+        .onTrue(
+            Commands.sequence(
+                say(),
+                Commands.deadline(indexer.set(0.25), linearIntake.setHeightAndStop(Meters.of(0))),
+                say(),
+                Commands.waitSeconds(5),
+                say(),
+                Commands.deadline(indexer.set(0), linearIntake.setHeight(Meters.of(0.3)))));
+    driverController
+        .button(2)
+        .whileTrue(
+            Commands.sequence(
+                hood.setAngle(Degrees.of(40)),
+                Commands.parallel(shooter.setVelocity(RPM.of(2500)), indexer.set(0.25))));
 
+    driverController
+        .button(2)
+        .whileFalse(
+            Commands.parallel(
+                hood.setAngle(Degrees.of(0)), shooter.setVelocity(RPM.of(0)), indexer.set(0)));
+    driverController.button(3).whileTrue(say());
   }
 
+  public Command say() {
+    return Commands.runOnce(() -> System.out.println("hi" + linearIntake.getHeight()));
+  }
   /**
    * Use this to pass the autonomous command to the main {@link Robot} class.
    *
