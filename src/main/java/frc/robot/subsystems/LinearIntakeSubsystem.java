@@ -19,7 +19,6 @@ import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.LinearIntakeConstants;
 import org.littletonrobotics.junction.AutoLog;
 import org.littletonrobotics.junction.Logger;
@@ -68,12 +67,12 @@ public class LinearIntakeSubsystem extends SubsystemBase {
     linearIntakeConfig = LinearIntakeConstants.ELEVATOR_CONFIG.withSmartMotorController(smc);
     linearIntake = new Elevator(linearIntakeConfig);
 
-    new Trigger(() -> getHeight().lte(Meters.of(0.1)))
-        .and(
-            () ->
-                linearIntakeInputs.setpoint.isEquivalent(
-                    smcConfig.convertFromMechanism(Rotations.of(0))))
-        .whileTrue(linearIntake.set(0));
+    //   new Trigger(() -> getHeight().lte(Meters.of(0.1)))
+    //       .and(
+    //           () ->
+    //               linearIntakeInputs.setpoint.isEquivalent(
+    //                   smcConfig.convertFromMechanism(Rotations.of(0))))
+    //       .whileTrue(linearIntake.set(0));
   }
 
   private void updateInputs() {
