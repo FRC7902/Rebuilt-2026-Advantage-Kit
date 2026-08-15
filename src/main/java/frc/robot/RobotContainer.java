@@ -76,7 +76,7 @@ public class RobotContainer {
         .button(1)
         .onTrue(
             Commands.sequence(
-                linearIntake.setHeightAndStop(Meters.of(0)),
+                linearIntake.setHeightAndStop(Meters.of(0.01)),
                 Commands.deadline(Commands.waitSeconds(5), indexer.set(1)).withTimeout(5),
                 Commands.parallel(
                         linearIntake.setHeightAndStop(LinearIntakeConstants.MAX_DISTANCE),
@@ -88,10 +88,10 @@ public class RobotContainer {
         .whileTrue(
             Commands.parallel(
                 shooter.setVelocity(RPM.of(2500)),
-                hood.setAngle(Degrees.of(25)).andThen(indexer.set(1))))
+                hood.setAngleAndStop(Degrees.of(25)).andThen(indexer.set(1))))
         .onFalse(
             Commands.parallel(
-                shooter.setVelocity(RPM.of(0)), hood.setAngle(Degrees.of(0)), indexer.set(0)));
+                shooter.setVelocity(RPM.of(0)), hood.setAngleAndStop(Degrees.of(0)), indexer.set(0)));
   }
 
   /**
